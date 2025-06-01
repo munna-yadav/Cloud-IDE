@@ -11,6 +11,7 @@ const router = Router();
 // User routes
 router.post('/users/register', validate(userValidation.register), userController.register);
 router.post('/users/login', validate(userValidation.login), userController.login);
+router.post('/users/logout', userController.logout);
 router.get('/users/verify-email', userController.verifyEmail);
 router.post('/users/forgot-password', validate(userValidation.forgotPassword), userController.forgotPassword);
 router.post('/users/reset-password/:token', validate(userValidation.resetPassword), userController.resetPassword);

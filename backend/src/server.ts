@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 
@@ -15,14 +16,19 @@ const io = new Server(httpServer, {
   cors: {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
 const prisma = new PrismaClient();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true,
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // API Routes
 app.use('/api', routes);
@@ -37,12 +43,12 @@ app.use(errorHandler);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
+  console.log('User connected:', socket.id);
 
   // Join a project room
   socket.on('join-project', (projectId: string) => {
     socket.join(projectId);
-    console.log(`Client ${socket.id} joined project ${projectId}`);
+    console.log(`User ${socket.id} joined project ${projectId}`);
   });
 
   // Handle real-time code changes
@@ -71,8 +77,13 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('leave-project', (projectId) => {
+    socket.leave(projectId);
+    console.log(`User ${socket.id} left project ${projectId}`);
+  });
+
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('User disconnected:', socket.id);
   });
 });
 

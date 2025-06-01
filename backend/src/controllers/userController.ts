@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
 import { emailService } from '../services/emailService';
+import { tokenService } from '../services/tokenService';
 
 const prisma = new PrismaClient();
 
@@ -105,16 +105,13 @@ export const userController = {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '24h' }
-      );
+      // Generate and set token
+      const token = tokenService.generateToken({ userId: user.id });
+      tokenService.setTokenCookie(res, token);
 
       // Remove sensitive data from response
       const { password: _, emailVerificationToken: __, ...userWithoutSensitiveData } = user;
-      return res.json({ user: userWithoutSensitiveData, token });
+      return res.json({ user: userWithoutSensitiveData });
     } catch (error) {
       console.error('Login error:', error);
       return res.status(500).json({ error: 'Internal server error' });
@@ -189,6 +186,16 @@ export const userController = {
       return res.json({ message: 'Password reset successful' });
     } catch (error) {
       console.error('Reset password error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  async logout(req: Request, res: Response) {
+    try {
+      tokenService.clearTokenCookie(res);
+      return res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+      console.error('Logout error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   },

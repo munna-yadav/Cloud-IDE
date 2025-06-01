@@ -18,8 +18,24 @@ export const projectController = {
           },
         },
         include: {
-          owner: true,
-          members: true,
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
         },
       });
 
@@ -36,8 +52,24 @@ export const projectController = {
       const project = await prisma.project.findUnique({
         where: { id: projectId },
         include: {
-          owner: true,
-          members: true,
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
           files: true,
         },
       });
@@ -65,8 +97,24 @@ export const projectController = {
           description,
         },
         include: {
-          owner: true,
-          members: true,
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
         },
       });
 
@@ -104,7 +152,15 @@ export const projectController = {
           },
         },
         include: {
-          members: true,
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
         },
       });
 
@@ -127,7 +183,15 @@ export const projectController = {
           },
         },
         include: {
-          members: true,
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
         },
       });
 
