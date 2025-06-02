@@ -6,7 +6,8 @@ const prisma = new PrismaClient();
 export const projectController = {
   async createProject(req: Request, res: Response) {
     try {
-      const { name, description, ownerId } = req.body;
+      const { name, description } = req.body;
+      const ownerId = req.user.userId;
 
       const project = await prisma.project.create({
         data: {
@@ -49,8 +50,19 @@ export const projectController = {
   async getProject(req: Request, res: Response) {
     try {
       const projectId = req.params.id;
-      const project = await prisma.project.findUnique({
-        where: { id: projectId },
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      // Only return the project if the user is owner or member
+      const project = await prisma.project.findFirst({
+        where: {
+          id: projectId,
+          OR: [
+            { ownerId: userId },
+            { members: { some: { id: userId } } },
+          ],
+        },
         include: {
           owner: {
             select: {
@@ -201,4 +213,45 @@ export const projectController = {
       return res.status(500).json({ error: 'Internal server error' });
     }
   },
-}; 
+
+  async getUserProjects(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const projects = await prisma.project.findMany({
+        where: {
+          OR: [
+            { ownerId: userId },
+            { members: { some: { id: userId } } },
+          ],
+        },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+          members: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
+        },
+      });
+      return res.json(projects);
+    } catch (error) {
+      console.error('Get user projects error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+};
