@@ -47,7 +47,6 @@ export const projectValidation = {
   create: [
     body('name').notEmpty().withMessage('Project name is required'),
     body('description').optional().isString(),
-    body('ownerId').isUUID().withMessage('Invalid owner ID'),
   ],
   update: [
     body('name').optional().isString(),
@@ -66,4 +65,4 @@ export const fileValidation = {
   update: [
     body('content').isString().withMessage('Content must be a string'),
   ],
-}; 
+};
