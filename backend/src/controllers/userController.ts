@@ -202,24 +202,33 @@ export const userController = {
 
   async getProfile(req: Request, res: Response) {
     try {
-      const userId = req.params.id;
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          projects: true,
-          ownedProjects: true,
-        },
-      });
-
+      // Use user from req.user (set by auth middleware)
+      const user = req.user;
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-
-      const { password: _, emailVerificationToken: __, ...userWithoutSensitiveData } = user;
-      return res.json(userWithoutSensitiveData);
+      // Remove userId field for response if you want
+      const { userId, ...userWithoutId } = user;
+      return res.json(userWithoutId);
     } catch (error) {
       console.error('Get profile error:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
   },
-}; 
+
+  async getMe(req: Request, res: Response) {
+    try {
+      // Use user from req.user (set by auth middleware)
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      // Remove userId field for response if you want
+      const { userId, ...userWithoutId } = user;
+      return res.json(userWithoutId);
+    } catch (error) {
+      console.error('Get me error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+};
