@@ -15,12 +15,13 @@ router.post('/users/logout', userController.logout);
 router.get('/users/verify-email', userController.verifyEmail);
 router.post('/users/forgot-password', validate(userValidation.forgotPassword), userController.forgotPassword);
 router.post('/users/reset-password/:token', validate(userValidation.resetPassword), userController.resetPassword);
+router.get('/users/find-by-email', auth, userController.findByEmail);
 router.get('/users/:id', auth, userController.getProfile);
-router.get('/users/me', auth, userController.getMe); // <-- Added /users/me route
+router.get('/users/me', auth, userController.getMe);
 
 // Project routes
 router.post('/projects', auth, validate(projectValidation.create), projectController.createProject);
-router.get('/projects', auth, projectController.getUserProjects); // <-- Added route for user's projects
+router.get('/projects', auth, projectController.getUserProjects);
 router.get('/projects/:id', auth, projectController.getProject);
 router.put('/projects/:id', auth, validate(projectValidation.update), projectController.updateProject);
 router.delete('/projects/:id', auth, projectController.deleteProject);

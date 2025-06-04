@@ -231,4 +231,32 @@ export const userController = {
       return res.status(500).json({ error: 'Internal server error' });
     }
   },
+
+  async findByEmail(req: Request, res: Response) {
+    try {
+      const { email } = req.query;
+      
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      return res.json(user);
+    } catch (error) {
+      console.error('Find by email error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  },
 };
