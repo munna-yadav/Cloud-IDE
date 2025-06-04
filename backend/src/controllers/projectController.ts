@@ -154,9 +154,46 @@ export const projectController = {
 
   async addMember(req: Request, res: Response) {
     try {
-      const { projectId, userId } = req.body;
+      const { id: projectId } = req.params;
+      const { userId } = req.body;
 
-      const project = await prisma.project.update({
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        }
+      });
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          members: {
+            select: {
+              id: true,
+            }
+          }
+        }
+      });
+
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      if (project.members.some(member => member.id === userId)) {
+        return res.status(400).json({ error: 'User is already a member of this project' });
+      }
+
+      const updatedProject = await prisma.project.update({
         where: { id: projectId },
         data: {
           members: {
@@ -169,14 +206,12 @@ export const projectController = {
               id: true,
               email: true,
               name: true,
-              createdAt: true,
-              updatedAt: true,
             }
           },
         },
       });
 
-      return res.json(project);
+      return res.json(updatedProject);
     } catch (error) {
       console.error('Add member error:', error);
       return res.status(500).json({ error: 'Internal server error' });
@@ -185,9 +220,35 @@ export const projectController = {
 
   async removeMember(req: Request, res: Response) {
     try {
-      const { projectId, userId } = req.body;
+      const { id: projectId } = req.params;
+      const { userId } = req.body;
 
-      const project = await prisma.project.update({
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Check if project exists and user is a member
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          members: {
+            select: {
+              id: true,
+            }
+          }
+        }
+      });
+
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      if (!project.members.some(member => member.id === userId)) {
+        return res.status(400).json({ error: 'User is not a member of this project' });
+      }
+
+      // Remove member from project
+      const updatedProject = await prisma.project.update({
         where: { id: projectId },
         data: {
           members: {
@@ -200,14 +261,12 @@ export const projectController = {
               id: true,
               email: true,
               name: true,
-              createdAt: true,
-              updatedAt: true,
             }
           },
         },
       });
 
-      return res.json(project);
+      return res.json(updatedProject);
     } catch (error) {
       console.error('Remove member error:', error);
       return res.status(500).json({ error: 'Internal server error' });
