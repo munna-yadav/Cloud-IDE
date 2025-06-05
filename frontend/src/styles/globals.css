@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Modern background effects */
+.gradient-bg {
+  background: linear-gradient(
+    45deg,
+    hsl(var(--background)) 0%,
+    hsl(var(--background)) 50%,
+    hsl(var(--primary) / 0.1) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient 15s ease infinite;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animated background dots */
+.dots-bg {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    hsl(var(--primary) / 0.15) 1px,
+    transparent 0
+  );
+  background-size: 40px 40px;
+}
+
+/* Glowing effect */
+.glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+}
+
+/* Modern card hover effect */
+.hover-card {
+  transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+}
+
+/* Add these new styles */
+.container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.rounded-button {
+  @apply rounded-md bg-primary hover:bg-primary/90;
+}
+
+.auth-container {
+  @apply min-h-screen flex items-center justify-center p-4;
+}
+
+.auth-card {
+  @apply glass-effect rounded-2xl p-8 w-full max-w-md;
+}
+
+.auth-input {
+  @apply w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors;
+}
+
+.auth-label {
+  @apply block text-sm font-medium text-muted-foreground mb-2;
+}
+
+/* Add a new class for input wrapper */
+.input-wrapper {
+  @apply relative;
+}
+
+/* Add a new class for password toggle button */
+.password-toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors;
+} 
