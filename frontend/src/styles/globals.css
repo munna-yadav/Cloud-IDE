@@ -123,4 +123,32 @@
 /* Add a new class for password toggle button */
 .password-toggle {
   @apply absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors;
+}
+
+/* Custom scrollbar styling for modern look */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
 } 

@@ -98,43 +98,58 @@ export function FileExplorer({
     const isExpanded = expandedFolders.has(folder.path);
 
     return (
-      <div key={folder.path} style={{ marginLeft: level ? '1rem' : 0 }}>
+      <div key={folder.path} style={{ marginLeft: level ? '0.75rem' : 0 }}>
         {folder.path !== '/' && (
           <button
             onClick={() => toggleFolder(folder.path)}
-            className="flex items-center gap-1 w-full p-1 hover:bg-[#2a2a2a] rounded-sm group"
+            className="flex items-center gap-2 w-full p-2 hover:bg-gradient-to-r hover:from-[#30363d]/50 hover:to-[#21262d] rounded-lg group transition-all duration-200"
           >
             {isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
             )}
-            <FolderOpen className="w-4 h-4 text-yellow-500" />
-            <span className="text-sm">{folder.name}</span>
-            <div className="ml-auto opacity-0 group-hover:opacity-100">
+            <FolderOpen className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium group-hover:text-white transition-colors">{folder.name}</span>
+            <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <MoreVertical className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-[#30363d]">
+                    <MoreVertical className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => {
-                    setNewItemType('file');
-                    setNewItemPath(folder.path);
-                  }}>
+                <DropdownMenuContent align="end" className="bg-[#1c2128] border-[#30363d]">
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setNewItemType('file');
+                      setNewItemPath(folder.path);
+                    }}
+                    className="hover:bg-[#30363d] focus:bg-[#30363d] text-white"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                     New File
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => {
-                    setNewItemType('folder');
-                    setNewItemPath(folder.path);
-                  }}>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      setNewItemType('folder');
+                      setNewItemPath(folder.path);
+                    }}
+                    className="hover:bg-[#30363d] focus:bg-[#30363d] text-white"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                    </svg>
                     New Folder
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    className="text-destructive"
+                    className="text-red-400 hover:bg-red-500/20 focus:bg-red-500/20"
                     onClick={() => onDeleteFolder(folder.path)}
                   >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -143,7 +158,7 @@ export function FileExplorer({
           </button>
         )}
         {isExpanded && (
-          <div>
+          <div className="ml-2 border-l border-[#30363d]/30 pl-2">
             {folder.items
               .sort((a, b) => {
                 // Folders first, then files
@@ -158,32 +173,45 @@ export function FileExplorer({
                   return renderTree(item as FolderType, level + 1);
                 }
                 const file = item as File;
+                const isActive = currentFile?.id === file.id;
                 return (
                   <button
                     key={file.id}
                     onClick={() => onFileSelect(file)}
-                    className={`flex items-center gap-1 w-full p-1 hover:bg-[#2a2a2a] rounded-sm group ${
-                      currentFile?.id === file.id ? 'bg-[#2a2a2a] text-primary' : ''
+                    className={`flex items-center gap-2 w-full p-2 rounded-lg group transition-all duration-200 ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-white border border-blue-500/30' 
+                        : 'hover:bg-gradient-to-r hover:from-[#30363d]/50 hover:to-[#21262d] text-gray-300 hover:text-white'
                     }`}
-                    style={{ marginLeft: '1rem' }}
                   >
-                    <FileText className="w-4 h-4" />
-                    <span className="text-sm">{file.name}</span>
-                    <div className="ml-auto opacity-0 group-hover:opacity-100">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {/* File type icon */}
+                      <div className={`w-2 h-2 rounded-full ${
+                        isActive ? 'bg-blue-500' : 'bg-gray-500'
+                      }`} />
+                      <FileText className={`w-4 h-4 ${
+                        isActive ? 'text-blue-400' : 'text-gray-400'
+                      }`} />
+                      <span className="text-sm font-medium truncate">{file.name}</span>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-[#30363d]">
+                            <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="bg-[#1c2128] border-[#30363d]">
                           <DropdownMenuItem
-                            className="text-destructive"
+                            className="text-red-400 hover:bg-red-500/20 focus:bg-red-500/20"
                             onClick={(e) => {
                               e.stopPropagation();
                               onDeleteFile(file);
                             }}
                           >
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
