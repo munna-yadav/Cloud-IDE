@@ -69,7 +69,7 @@ export default function Dashboard() {
             {project.ownerId !== user?.id && (
               <Share2 className="h-4 w-4 text-muted-foreground" />
             )}
-            <FolderGit2 className="h-5 w-5 text-muted-foreground" />
+            {/* <FolderGit2 className="h-5 w-5 text-muted-foreground" /> */}
           </div>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export default function Dashboard() {
                   e.stopPropagation();
                 }}
               >
-                <MoreVertical className="h-3.5 w-3.5" />
+                <MoreVertical className="h-3.5 w-3.5  hover:bg-destructive/10" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
