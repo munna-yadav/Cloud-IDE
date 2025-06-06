@@ -140,9 +140,39 @@ export const projectController = {
   async deleteProject(req: Request, res: Response) {
     try {
       const projectId = req.params.id;
+      const userId = req.user?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
-      await prisma.project.delete({
+      console.log('Deleting project:', projectId);
+
+      // Check if the project exists and if the user is the owner
+      const project = await prisma.project.findUnique({
         where: { id: projectId },
+        select: { ownerId: true }
+      });
+
+      if (!project) {
+        return res.status(404).json({ error: 'Project not found' });
+      }
+
+      if (project.ownerId !== userId) {
+        return res.status(403).json({ error: 'Only the project owner can delete the project' });
+      }
+
+      // Use a transaction to ensure atomic deletion
+      await prisma.$transaction(async (tx) => {
+        // First delete all files associated with the project
+        await tx.file.deleteMany({
+          where: { projectId: projectId },
+        });
+
+        // Then delete the project itself
+        await tx.project.delete({
+          where: { id: projectId },
+        });
       });
 
       return res.status(204).send();

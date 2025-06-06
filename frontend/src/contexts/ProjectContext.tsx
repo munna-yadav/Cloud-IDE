@@ -8,6 +8,8 @@ interface Project {
   description: string;
   createdAt: string;
   updatedAt: string;
+  ownerId: string;
+  members: any[];
 }
 
 interface ProjectContextType {
