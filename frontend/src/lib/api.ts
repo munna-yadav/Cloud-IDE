@@ -75,4 +75,9 @@ export const files = {
     api.delete(`/files/${fileId}`),
 };
 
+export const codeExecution = {
+  execute: (data: { code: string; language?: string }) =>
+    api.post('/execute', data),
+};
+
 export default api; 

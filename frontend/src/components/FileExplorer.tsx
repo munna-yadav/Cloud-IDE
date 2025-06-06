@@ -114,7 +114,12 @@ export function FileExplorer({
             <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-[#30363d]">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 hover:bg-[#30363d]"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <MoreVertical className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -175,16 +180,18 @@ export function FileExplorer({
                 const file = item as File;
                 const isActive = currentFile?.id === file.id;
                 return (
-                  <button
+                  <div
                     key={file.id}
-                    onClick={() => onFileSelect(file)}
                     className={`flex items-center gap-2 w-full p-2 rounded-lg group transition-all duration-200 ${
                       isActive 
                         ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-white border border-blue-500/30' 
                         : 'hover:bg-gradient-to-r hover:from-[#30363d]/50 hover:to-[#21262d] text-gray-300 hover:text-white'
                     }`}
                   >
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <button
+                      onClick={() => onFileSelect(file)}
+                      className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                    >
                       {/* File type icon */}
                       <div className={`w-2 h-2 rounded-full ${
                         isActive ? 'bg-blue-500' : 'bg-gray-500'
@@ -193,11 +200,16 @@ export function FileExplorer({
                         isActive ? 'text-blue-400' : 'text-gray-400'
                       }`} />
                       <span className="text-sm font-medium truncate">{file.name}</span>
-                    </div>
+                    </button>
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-[#30363d]">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 hover:bg-[#30363d]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <MoreVertical className="h-3 w-3" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -217,7 +229,7 @@ export function FileExplorer({
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </button>
+                  </div>
                 );
               })}
           </div>

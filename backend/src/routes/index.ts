@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { userController } from '../controllers/userController';
 import { projectController } from '../controllers/projectController';
 import { fileController } from '../controllers/fileController';
+import { executeCode } from '../controllers/codeExecutionController';
 import { auth } from '../middleware/auth';
 import { validate } from '../middleware/validator';
 import { userValidation, projectValidation, fileValidation } from '../middleware/validator';
@@ -34,5 +35,8 @@ router.get('/files/:id', auth, fileController.getFile);
 router.put('/files/:id', auth, validate(fileValidation.update), fileController.updateFile);
 router.delete('/files/:id', auth, fileController.deleteFile);
 router.get('/projects/:projectId/files', auth, fileController.getProjectFiles);
+
+// Code execution route
+router.post('/execute', auth, executeCode);
 
 export default router;
