@@ -5,6 +5,7 @@ import { useFiles } from '../contexts/FileContext';
 import { useAuth } from '../contexts/AuthContext';
 import { projects as projectsApi } from '../lib/api';
 import { CodeEditor } from '../components/CodeEditor';
+import { CodeRunner } from '../components/CodeRunner';
 import { ResizablePanel } from '../components/ResizablePanel';
 import { FileExplorer } from '../components/FileExplorer';
 import { FileTabs } from '../components/FileTabs';
@@ -216,11 +217,42 @@ export default function ProjectDetails() {
         {/* Editor */}
         <div className="flex-1 bg-[#1e1e1e] overflow-hidden">
           {currentFile ? (
-            <CodeEditor
-              value={currentFile.content}
-              language={currentFile.language}
-              onChange={handleFileContentChange}
-            />
+            <div className="h-full flex flex-col">
+              {/* Check if it's a JavaScript file to show code runner */}
+              {currentFile.language === 'javascript' ? (
+                <ResizablePanel
+                  direction="horizontal"
+                  defaultSize={50}
+                  minSize={30}
+                  maxSize={70}
+                  className="flex-1"
+                >
+                  {/* Editor Panel */}
+                  <div className="h-full overflow-hidden">
+                    <CodeEditor
+                      value={currentFile.content}
+                      language={currentFile.language}
+                      onChange={handleFileContentChange}
+                    />
+                  </div>
+
+                  {/* Code Runner Panel */}
+                  <div className="h-full border-l border-[#30363d]">
+                    <CodeRunner
+                      code={currentFile.content}
+                      language={currentFile.language}
+                      className="h-full"
+                    />
+                  </div>
+                </ResizablePanel>
+              ) : (
+                <CodeEditor
+                  value={currentFile.content}
+                  language={currentFile.language}
+                  onChange={handleFileContentChange}
+                />
+              )}
+            </div>
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center max-w-md mx-auto">
