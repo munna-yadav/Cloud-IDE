@@ -8,18 +8,10 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Only redirect to login for protected routes, not for auth-related endpoints
+// Handle API errors without automatic redirects
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isAuthEndpoint = ['/users/login', '/users/register', '/users/me'].some(endpoint => 
-      error.config?.url?.includes(endpoint)
-    );
-    
-    // Don't redirect if we're on an auth endpoint or already on the login page
-    if (error.response?.status === 401 && !isAuthEndpoint && !window.location.pathname.includes('/login')) {
-      window.location.href = '/login';
-    }
     return Promise.reject(error);
   }
 );
@@ -80,4 +72,4 @@ export const codeExecution = {
     api.post('/execute', data),
 };
 
-export default api; 
+export default api;

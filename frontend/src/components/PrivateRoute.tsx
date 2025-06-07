@@ -15,7 +15,7 @@ export default function PrivateRoute({ children }: PrivateRouteProps) {
 
   // Only redirect if we're sure there's no user
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;

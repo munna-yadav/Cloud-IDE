@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (data: { email: string; password: string }) => Promise<User>;
   register: (data: { email: string; password: string; name: string }) => Promise<void>;
   logout: () => Promise<void>;
+  isAuthenticated: boolean; // <-- Add isAuthenticated here
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,12 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
       } catch (error) {
-        // Only clear user data for protected routes
-        const isProtectedRoute = !['/login', '/register', '/'].includes(window.location.pathname);
-        if (isProtectedRoute) {
+        // Always clear user data if auth check fails
         setUser(null);
-          localStorage.removeItem('user');
-        }
+        localStorage.removeItem('user');
       } finally {
         setLoading(false);
       }
@@ -72,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       await auth.register(data);
       toast.success('Registration successful! Please check your email to verify your account.');
-      // Don't set user or localStorage since email verification is required
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Failed to register. Please try again.';
       toast.error(errorMessage);
@@ -98,12 +95,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Add a helper to check if user is authenticated
+  const isAuthenticated = !!user;
+
   const value = {
-        user,
-        loading,
-        login,
-        register,
-        logout,
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAuthenticated, // add this to context
   };
 
   return (
@@ -119,4 +120,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

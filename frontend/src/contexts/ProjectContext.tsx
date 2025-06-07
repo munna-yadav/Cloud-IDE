@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { projects } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 interface Project {
   id: string;
@@ -26,22 +27,30 @@ interface ProjectContextType {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [projectsList, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Always fetch projects on mount to keep dashboard in sync
+  // Only fetch projects when user is authenticated
   useEffect(() => {
-    fetchProjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (user) {
+      fetchProjects();
+    } else {
+      // Clear projects when user logs out
+      setProjects([]);
+    }
+  }, [user]); // Depend on user instead of running on mount
 
   const fetchProjects = async () => {
     try {
       setLoading(true);
       const response = await projects.list();
       setProjects(response.data);
-    } catch (error) {
-      toast.error('Failed to fetch projects');
+    } catch (error: any) {
+      // Only show error toast if we're still authenticated
+      if (user) {
+        toast.error('Failed to fetch projects');
+      }
     } finally {
       setLoading(false);
     }

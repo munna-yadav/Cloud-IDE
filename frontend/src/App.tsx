@@ -18,7 +18,6 @@ import VerifyEmail from './pages/VerifyEmail';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
-import LandingRoute from './components/LandingRoute';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,61 +30,56 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
+    <div className="dark min-h-screen bg-background text-foreground">
       <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ProjectProvider>
-            <FileProvider>
-              <Toaster position="top-right" />
-              <Routes>
-                {/* Public routes */}
-                <Route 
-                  path="/"
-                  element={
-                    <LandingRoute>
-                      <Landing />
-                    </LandingRoute>
-                  } 
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                
-                {/* Protected routes */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <PrivateRoute>
-                      <Dashboard />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/projects/create"
-                  element={
-                    <PrivateRoute>
-                      <CreateProject />
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/projects/:projectId"
-                  element={
-                    <PrivateRoute>
-                      <ProjectDetails />
-                    </PrivateRoute>
-                  }
-                />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </FileProvider>
-          </ProjectProvider>
-        </AuthProvider>
-      </BrowserRouter>
+        <BrowserRouter>
+          <AuthProvider>
+            <ProjectProvider>
+              <FileProvider>
+                <Toaster position="top-right" />
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  
+                  {/* Protected routes */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <PrivateRoute>
+                        <Dashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/projects/create"
+                    element={
+                      <PrivateRoute>
+                        <CreateProject />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/projects/:projectId"
+                    element={
+                      <PrivateRoute>
+                        <ProjectDetails />
+                      </PrivateRoute>
+                    }
+                  />
+                  
+                  {/* Catch all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </FileProvider>
+            </ProjectProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </QueryClientProvider>
+    </div>
   );
 }
 
-export default App; 
+export default App;
