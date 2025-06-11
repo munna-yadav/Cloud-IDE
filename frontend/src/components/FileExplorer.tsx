@@ -38,7 +38,6 @@ export function FileExplorer({
   const [newItemName, setNewItemName] = useState('');
   const [newItemPath, setNewItemPath] = useState('');
   const [newItemType, setNewItemType] = useState<'file' | 'folder' | null>(null);
-  const [newFileLang, setNewFileLang] = useState('javascript');
 
   // Convert flat file list to tree structure
   const fileTree: FolderType = {
@@ -84,7 +83,21 @@ export function FileExplorer({
     if (!newItemName || !newItemPath || !newItemType) return;
 
     if (newItemType === 'file') {
-      onCreateFile(newItemName, newFileLang, `${newItemPath}${newItemName}`);
+      let fileName = newItemName;
+      let language = 'javascript'; // default
+      
+      // Auto-detect language based on extension
+      if (newItemName.endsWith('.java')) {
+        language = 'java';
+      } else if (newItemName.endsWith('.js')) {
+        language = 'javascript';
+      } else {
+        // No extension provided, default to JavaScript
+        fileName = `${newItemName}.js`;
+        language = 'javascript';
+      }
+      
+      onCreateFile(fileName, language, `${newItemPath}${fileName}`);
     } else {
       onCreateFolder(`${newItemPath}${newItemName}/`);
     }
@@ -267,7 +280,7 @@ export function FileExplorer({
               value={newItemName}
               onChange={e => setNewItemName(e.target.value)}
               className="w-full bg-[#23272e] border border-[#333] rounded px-2 py-1 text-sm"
-              placeholder={newItemType === 'file' ? 'File name' : 'Folder name'}
+              placeholder={newItemType === 'file' ? 'File name (e.g., index.js, Main.java)' : 'Folder name'}
               autoFocus
               onKeyDown={e => {
                 if (e.key === 'Enter') handleCreateItem();
@@ -277,25 +290,6 @@ export function FileExplorer({
                 }
               }}
             />
-            {newItemType === 'file' && (
-              <select
-                value={newFileLang}
-                onChange={e => setNewFileLang(e.target.value)}
-                className="w-full bg-[#23272e] border border-[#333] rounded px-2 py-1 text-sm"
-              >
-                <option value="javascript">JavaScript (.js)</option>
-                <option value="typescript">TypeScript (.ts)</option>
-                <option value="python">Python (.py)</option>
-                <option value="json">JSON (.json)</option>
-                <option value="markdown">Markdown (.md)</option>
-                <option value="html">HTML (.html)</option>
-                <option value="css">CSS (.css)</option>
-                <option value="cpp">C++ (.cpp)</option>
-                <option value="c">C (.c)</option>
-                <option value="java">Java (.java)</option>
-                <option value="plaintext">Plain Text (.txt)</option>
-              </select>
-            )}
             <div className="flex justify-end gap-2">
               <Button
                 size="sm"
