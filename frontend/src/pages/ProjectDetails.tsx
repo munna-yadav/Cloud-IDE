@@ -31,7 +31,7 @@ export default function ProjectDetails() {
   const { projectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
   const { files, currentFile, setCurrentFile, createFile, updateFile, deleteFile, fetchFiles } = useFiles();
-  const { projects } = useProjects();
+  const { projects, addMember, removeMember } = useProjects();
   const [project, setProject] = useState<ProjectWithDetails | null>(null);
   const [fetching, setFetching] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -39,7 +39,8 @@ export default function ProjectDetails() {
 
   // Load open files from localStorage
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId || files.length === 0) return;
+    
     const savedOpenFiles = localStorage.getItem(`project_${projectId}_open_files`);
     if (savedOpenFiles) {
       try {
@@ -48,6 +49,7 @@ export default function ProjectDetails() {
           files.some(file => file.id === savedFile.id)
         );
         setOpenFiles(validFiles);
+        // Only set current file if there's no current file and we have valid saved files
         if (validFiles.length > 0 && !currentFile) {
           setCurrentFile(validFiles[0]);
         }
@@ -55,7 +57,7 @@ export default function ProjectDetails() {
         console.error('Failed to parse saved open files:', error);
       }
     }
-  }, [projectId, files, currentFile, setCurrentFile]);
+  }, [projectId, files]); // Removed currentFile and setCurrentFile from dependencies
 
   // Save open files to localStorage
   useEffect(() => {
@@ -96,10 +98,16 @@ export default function ProjectDetails() {
   }, [projectId, fetchProjectDetails, fetchFiles]);
 
   const handleFileSelect = (file: File) => {
+    // Always set the current file first
     setCurrentFile(file);
-    if (!openFiles.some(f => f.id === file.id)) {
-      setOpenFiles(prev => [...prev, file]);
-    }
+    
+    // Add to open files if not already present
+    setOpenFiles(prev => {
+      if (!prev.some(f => f.id === file.id)) {
+        return [...prev, file];
+      }
+      return prev;
+    });
   };
 
   const handleFileClose = (file: File) => {
@@ -116,6 +124,56 @@ export default function ProjectDetails() {
       await updateFile(currentFile.id, content);
     } catch (error) {
       console.error('Failed to update file:', error);
+    }
+  };
+
+  const handleCreateFile = async (name: string, language: string, path: string) => {
+    if (!projectId) return;
+    try {
+      const newFile = await createFile(projectId, {
+        name,
+        content: '',
+        language,
+        path
+      });
+      setCurrentFile(newFile);
+      if (!openFiles.some(f => f.id === newFile.id)) {
+        setOpenFiles(prev => [...prev, newFile]);
+      }
+    } catch (error) {
+      console.error('Failed to create file:', error);
+    }
+  };
+
+  const handleDeleteFile = async (file: File) => {
+    try {
+      await deleteFile(file.id);
+      if (currentFile?.id === file.id) {
+        const remainingOpenFiles = openFiles.filter(f => f.id !== file.id);
+        setCurrentFile(remainingOpenFiles[remainingOpenFiles.length - 1] || null);
+      }
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+    }
+  };
+
+  const handleAddMember = async (email: string) => {
+    if (!projectId) return;
+    try {
+      await addMember(projectId, email);
+    } catch (error) {
+      console.error('Failed to add member:', error);
+      throw error; // Re-throw to let the component handle the error display
+    }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!projectId) return;
+    try {
+      await removeMember(projectId, userId);
+    } catch (error) {
+      console.error('Failed to remove member:', error);
+      throw error; // Re-throw to let the component handle the error display
     }
   };
 
@@ -157,9 +215,9 @@ export default function ProjectDetails() {
                 files={files}
                 currentFile={currentFile}
                 onFileSelect={handleFileSelect}
-                onCreateFile={(name, language, path) => {}}
+                onCreateFile={handleCreateFile}
                 onCreateFolder={(path) => {}}
-                onDeleteFile={(file) => {}}
+                onDeleteFile={handleDeleteFile}
                 onDeleteFolder={(path) => {}}
               />
             </div>
@@ -202,8 +260,8 @@ export default function ProjectDetails() {
               members={project.members}
               owner={project.owner}
               currentUser={user}
-              onAddMember={async () => {}}
-              onRemoveMember={async () => {}}
+              onAddMember={handleAddMember}
+              onRemoveMember={handleRemoveMember}
             />
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Share className="h-4 w-4" />
@@ -218,8 +276,8 @@ export default function ProjectDetails() {
         <div className="flex-1 bg-[#1e1e1e] overflow-hidden">
           {currentFile ? (
             <div className="h-full flex flex-col">
-              {/* Check if it's a JavaScript file to show code runner */}
-              {currentFile.language === 'javascript' ? (
+              {/* Check if it's a JavaScript or Java file to show code runner */}
+              {(currentFile.language === 'javascript' || currentFile.language === 'java') ? (
                 <ResizablePanel
                   direction="horizontal"
                   defaultSize={50}
