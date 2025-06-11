@@ -4,16 +4,18 @@ A modern,collaborative cloud IDE inspired by VS Code. Built with React/TypeScrip
 
 ## Features
 
-- **Realtime collaboratoin**: Write code simaltaneously with friends.
+- **User Authentication**: Secure login/signup with email verification
+- **Project Management**: Create, edit, and manage projects
+- **File Management**: Create, edit, and delete files with syntax highlighting
+- **Real-time Code Editor**: Monaco Editor with advanced features
+- **Code Execution**: Run JavaScript and Java code with Docker sandbox
+- **Team Collaboration**: Add members to projects
+- **Responsive Design**: Works on desktop and mobile devices
 - **Project Dashboard**: View, create, and manage your projects.
 - **Project Access Control**: Only owners and invited members can access project details and files.
 - **File Explorer**: Create, view, and edit files in a project. Sidebar navigation with collapsible folders (if supported).
-- **Monaco Code Editor**: Syntax highlighting, intellisense for JS/TS, and basic support for other languages.
 - **Multi-language Support**: Create files in JavaScript, TypeScript, Python, JSON, Markdown, HTML, CSS, C, C++, Java, and plain text.
 - **Tabbed Editing**: (If enabled) Open multiple files in tabs for easy switching.
-- **Code Runner**: Run JavaScript code directly in the editor for now ``` will be adding others too.```
-- **Project Members**: Invite/remove collaborators (UI present, backend integration required).
-
 
 ## Setup Instructions
 
@@ -53,18 +55,18 @@ npm run dev
 - Configure SMTP settings in backend `.env` for email verification features.
 
 ## Usage
-- Register and verify your email (if enabled).
+
 - Create a new project from the dashboard.
 - Add files using the sidebar. Choose language/extension for syntax highlighting.
 - Click a file to open and edit it in the Monaco editor.
-- For JavaScript files, use the built-in code runner.
+- For JavaScript and Java files, use the built-in code runner.
 - Invite team members to collaborate (UI present; backend integration may be required).
 
 ## Tech Stack
 - **Frontend**: React, TypeScript, Tailwind CSS, Monaco Editor
 - **Backend**: Node.js, Express, TypeScript, Prisma ORM, PostgreSQL
-- **Docker**: To execute the JS file
-- **Websocket**: Scoket.io
+- **Docker**: To execute JS and Java files
+- **Websocket**: Socket.io
 - **Authentication**: JWT, bcrypt
 - **Other**: Email verification, REST API
 
