@@ -11,19 +11,34 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const CLIENT_URL = 'https://ide.devmunna.xyz';
+
 export const emailService = {
   async sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+    const verificationUrl = `${CLIENT_URL}/verify-email?token=${token}`;
     
     const mailOptions = {
       from: process.env.SMTP_FROM,
       to: email,
       subject: 'Verify your email address',
       html: `
-        <h1>Email Verification</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">${verificationUrl}</a>
-        <p>This link will expire in 24 hours.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #3b82f6; text-align: center;">Email Verification</h1>
+          <p>Thank you for registering with Cloud IDE. Please click the button below to verify your email address:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" 
+               style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Verify Email Address
+            </a>
+          </div>
+          <p style="color: #666;">If the button doesn't work, you can also copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #3b82f6;">${verificationUrl}</p>
+          <p style="color: #666;">This link will expire in 24 hours.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #666; font-size: 12px; text-align: center;">
+            If you didn't create an account with Cloud IDE, you can safely ignore this email.
+          </p>
+        </div>
       `,
     };
 
@@ -35,18 +50,30 @@ export const emailService = {
   },
 
   async sendPasswordResetEmail(email: string, token: string) {
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+    const resetUrl = `${CLIENT_URL}/reset-password?token=${token}`;
     
     const mailOptions = {
       from: process.env.SMTP_FROM,
       to: email,
       subject: 'Password Reset Request',
       html: `
-        <h1>Password Reset</h1>
-        <p>You requested a password reset. Click the link below to reset your password:</p>
-        <a href="${resetUrl}">${resetUrl}</a>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn't request this, please ignore this email.</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h1 style="color: #3b82f6; text-align: center;">Password Reset</h1>
+          <p>You requested a password reset. Click the button below to reset your password:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" 
+               style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              Reset Password
+            </a>
+          </div>
+          <p style="color: #666;">If the button doesn't work, you can also copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; color: #3b82f6;">${resetUrl}</p>
+          <p style="color: #666;">This link will expire in 1 hour.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+          <p style="color: #666; font-size: 12px; text-align: center;">
+            If you didn't request this password reset, you can safely ignore this email.
+          </p>
+        </div>
       `,
     };
 
