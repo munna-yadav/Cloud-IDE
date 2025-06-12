@@ -57,7 +57,7 @@ export const projects = {
 
 export const files = {
   list: (projectId: string) => api.get(`/projects/${projectId}/files`),
-  get: (projectId: string, fileId: string) =>
+  get: (_projectId: string, fileId: string) =>
     api.get(`/files/${fileId}`),
   create: (projectId: string, data: { name: string; content: string; language: string; path: string }) =>
     api.post('/files', { ...data, projectId }),
@@ -68,7 +68,7 @@ export const files = {
 };
 
 export const codeExecution = {
-  execute: (data: { code: string; language?: string }) =>
+  execute: (data: { code: string; language?: string; input?: string }) =>
     api.post('/execute', data),
 };
 

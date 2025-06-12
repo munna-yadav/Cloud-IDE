@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Editor } from '@monaco-editor/react';
+import * as monaco from 'monaco-editor';
 import {
   Select,
   SelectContent,
@@ -9,9 +10,8 @@ import {
 } from './ui/select';
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuContent,
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { Settings } from 'lucide-react';
@@ -37,6 +37,75 @@ export function CodeEditor({ value, language, onChange, readOnly = false }: Code
   const [fontFamily, setFontFamily] = useState(FONTS[0].value);
   const [minimap, setMinimap] = useState(true);
   const [wordWrap, setWordWrap] = useState<'on' | 'off'>('off');
+
+  const handleEditorDidMount = (_editor: any, monaco: any) => {
+    // Add Java language configuration
+    if (language === 'java') {
+      // Register Java completion provider
+      monaco.languages.registerCompletionItemProvider('java', {
+        provideCompletionItems: (_model: any, _position: any) => {
+          const suggestions = [
+            // Java keywords
+            {
+              label: 'public class',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'public class ${1:ClassName} {\n\t${2}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Create a public class'
+            },
+            {
+              label: 'main method',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'public static void main(String[] args) {\n\t${1}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Create main method'
+            },
+            {
+              label: 'System.out.println',
+              kind: monaco.languages.CompletionItemKind.Method,
+              insertText: 'System.out.println(${1});',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Print line to console'
+            },
+            {
+              label: 'for loop',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'for (int ${1:i} = 0; ${1:i} < ${2:length}; ${1:i}++) {\n\t${3}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Create for loop'
+            },
+            {
+              label: 'if statement',
+              kind: monaco.languages.CompletionItemKind.Snippet,
+              insertText: 'if (${1:condition}) {\n\t${2}\n}',
+              insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+              documentation: 'Create if statement'
+            },
+            // Common Java types
+            { label: 'String', kind: monaco.languages.CompletionItemKind.Class },
+            { label: 'int', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'boolean', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'double', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'float', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'char', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'long', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'byte', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'short', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'void', kind: monaco.languages.CompletionItemKind.Keyword },
+            // Access modifiers
+            { label: 'public', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'private', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'protected', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'static', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'final', kind: monaco.languages.CompletionItemKind.Keyword },
+            { label: 'abstract', kind: monaco.languages.CompletionItemKind.Keyword },
+          ];
+          
+          return { suggestions };
+        }
+      });
+    }
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -126,6 +195,7 @@ export function CodeEditor({ value, language, onChange, readOnly = false }: Code
           value={value}
           onChange={(value) => onChange(value || '')}
           theme="vs-dark"
+          onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: minimap },
             fontSize,
@@ -137,6 +207,16 @@ export function CodeEditor({ value, language, onChange, readOnly = false }: Code
             readOnly,
             automaticLayout: true,
             fontLigatures: true,
+            suggest: {
+              insertMode: 'replace',
+              showKeywords: true,
+              showSnippets: true,
+            },
+            quickSuggestions: {
+              other: true,
+              comments: false,
+              strings: false,
+            },
           }}
         />
       </div>

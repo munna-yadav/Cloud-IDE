@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Folder, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical } from 'lucide-react';
+import { FileText, FolderOpen, ChevronRight, ChevronDown, Plus, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,

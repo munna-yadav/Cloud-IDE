@@ -26,8 +26,8 @@
       "@/*": ["./src/*"]
     },
 
-    "types": ["vite/client", "monaco-editor"]
+    "types": ["vite/client", "monaco-editor", "node"]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
-} 
+}

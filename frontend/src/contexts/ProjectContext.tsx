@@ -58,9 +58,12 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
   const createProject = async (data: { name: string; description: string }) => {
     try {
+      // Either use the response
       const response = await projects.create(data);
-      // After creating, fetch the full list to ensure consistency
-      await fetchProjects();
+      setProjects(prev => [...prev, response.data]);
+
+      // Or remove it if not needed
+      // await projects.create(data);
       toast.success('Project created successfully!');
     } catch (error) {
       toast.error('Failed to create project');

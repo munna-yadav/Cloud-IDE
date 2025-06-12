@@ -216,9 +216,9 @@ export default function ProjectDetails() {
                 currentFile={currentFile}
                 onFileSelect={handleFileSelect}
                 onCreateFile={handleCreateFile}
-                onCreateFolder={(path) => {}}
+                onCreateFolder={(_path) => {}}
                 onDeleteFile={handleDeleteFile}
-                onDeleteFolder={(path) => {}}
+                onDeleteFolder={(_path) => {}}
               />
             </div>
           </div>

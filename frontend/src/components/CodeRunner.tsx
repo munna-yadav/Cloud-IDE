@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, Square, Terminal, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Play, Square, Terminal, AlertCircle, CheckCircle, Clock, Keyboard } from 'lucide-react';
 import { Button } from './ui/button';
 import { codeExecution } from '../lib/api';
 import { cn } from '../lib/utils';
@@ -21,6 +21,8 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
   const [isOutputVisible, setIsOutputVisible] = useState(false);
+  const [input, setInput] = useState('');
+  const [showInputPanel, setShowInputPanel] = useState(false);
 
   const handleRun = async () => {
     if (!code.trim()) {
@@ -38,7 +40,11 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
     setResult(null);
 
     try {
-      const response = await codeExecution.execute({ code, language });
+      const response = await codeExecution.execute({ 
+        code, 
+        language, 
+        input: input.trim() || undefined 
+      });
       setResult(response.data);
     } catch (error: any) {
       setResult({
@@ -58,7 +64,7 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
 
   return (
     <div className={cn('flex flex-col', className)}>
-      {/* Run Button */}
+      {/* Run Button and Input Panel Toggle */}
       <div className="flex items-center gap-2 p-3 border-b border-[#30363d] bg-[#1c2128]">
         <Button
           onClick={handleRun}
@@ -91,6 +97,19 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
           </Button>
         )}
 
+        {/* Input Panel Toggle (only for Java) */}
+        {language === 'java' && (
+          <Button
+            onClick={() => setShowInputPanel(!showInputPanel)}
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Keyboard className="w-4 h-4" />
+            {showInputPanel ? 'Hide Input' : 'Add Input'}
+          </Button>
+        )}
+
         <Button
           onClick={() => setIsOutputVisible(!isOutputVisible)}
           variant="ghost"
@@ -101,6 +120,26 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
           {isOutputVisible ? 'Hide Output' : 'Show Output'}
         </Button>
       </div>
+
+      {/* Input Panel (for Java programs with Scanner) */}
+      {showInputPanel && language === 'java' && (
+        <div className="border-b border-[#30363d] bg-[#161b22] p-3">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-300">
+              Program Input (for Scanner)
+            </label>
+            <textarea
+              value={input}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+              placeholder="Enter input values (one per line)&#10;Example:&#10;10&#10;20"
+              className="min-h-[80px] w-full bg-[#0d1117] border border-[#30363d] text-white placeholder:text-gray-500 font-mono text-sm p-2 rounded resize-none"
+            />
+            <p className="text-xs text-gray-500">
+              💡 Enter values that your Scanner will read (e.g., numbers, strings)
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Output Panel */}
       {isOutputVisible && (
@@ -173,6 +212,11 @@ export function CodeRunner({ code, language = 'javascript', className }: CodeRun
             ) : (
               <div className="text-sm text-gray-500 italic">
                 Click "Run Code" to execute the current file
+                {language === 'java' && (
+                  <div className="mt-2 text-xs text-blue-400">
+                    💡 For Java programs using Scanner, click "Add Input" to provide test data
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -10,6 +10,7 @@ interface CodeExecutionRequest extends Request {
   body: {
     code: string;
     language?: string;
+    input?: string;
   };
 }
 
@@ -22,7 +23,7 @@ interface CodeExecutionResponse {
 
 export const executeCode = async (req: CodeExecutionRequest, res: Response<CodeExecutionResponse>) => {
   try {
-    const { code, language = 'javascript' } = req.body;
+    const { code, language = 'javascript', input = '' } = req.body;
     
     if (!code || code.trim() === '') {
       return res.status(400).json({
@@ -49,8 +50,15 @@ export const executeCode = async (req: CodeExecutionRequest, res: Response<CodeE
       // Write Java code to temp file
       await fs.writeFile(tempFilePath, code, 'utf8');
       
-      // Docker command for Java compilation and execution
-      dockerCmd = [
+      // Create input file if input is provided
+      let inputFilePath = '';
+      if (input.trim()) {
+        inputFilePath = path.join('/tmp', `${timestamp}_${randomId}_input.txt`);
+        await fs.writeFile(inputFilePath, input, 'utf8');
+      }
+      
+      // Docker command for Java compilation and execution with input support
+      const baseCmd = [
         'docker run --rm',
         '--memory=256m',
         '--cpus=0.5',
@@ -58,12 +66,25 @@ export const executeCode = async (req: CodeExecutionRequest, res: Response<CodeE
         '--read-only',
         '--tmpfs /tmp:rw,exec,size=20m',
         `--volume ${tempFilePath}:/app/${tempFileName}:ro`,
+      ];
+      
+      if (inputFilePath) {
+        baseCmd.push(`--volume ${inputFilePath}:/app/input.txt:ro`);
+      }
+      
+      baseCmd.push(
         '--user nobody',
         '--cap-drop=ALL',
         'openjdk:11-jdk-slim',
-        'timeout 15s sh -c',
-        `"javac /app/${tempFileName} -d /tmp && java -cp /tmp ${className}"`
-      ].join(' ');
+        'timeout 15s sh -c'
+      );
+      
+      const execCommand = inputFilePath 
+        ? `"javac /app/${tempFileName} -d /tmp && java -cp /tmp ${className} < /app/input.txt"`
+        : `"javac /app/${tempFileName} -d /tmp && java -cp /tmp ${className}"`;
+      
+      baseCmd.push(execCommand);
+      dockerCmd = baseCmd.join(' ');
       
     } else {
       // JavaScript execution (existing logic)
@@ -95,8 +116,12 @@ export const executeCode = async (req: CodeExecutionRequest, res: Response<CodeE
       const { stdout, stderr } = await execAsync(dockerCmd);
       const executionTime = Date.now() - startTime;
       
-      // Clean up temp file
+      // Clean up temp files
       await fs.unlink(tempFilePath).catch(() => {}); // Ignore cleanup errors
+      if (language === 'java' && input.trim()) {
+        const inputFilePath = path.join('/tmp', `${timestamp}_${randomId}_input.txt`);
+        await fs.unlink(inputFilePath).catch(() => {});
+      }
       
       res.json({
         success: true,
@@ -107,8 +132,12 @@ export const executeCode = async (req: CodeExecutionRequest, res: Response<CodeE
     } catch (error: any) {
       const executionTime = Date.now() - startTime;
       
-      // Clean up temp file
+      // Clean up temp files
       await fs.unlink(tempFilePath).catch(() => {});
+      if (language === 'java' && input.trim()) {
+        const inputFilePath = path.join('/tmp', `${timestamp}_${randomId}_input.txt`);
+        await fs.unlink(inputFilePath).catch(() => {});
+      }
       
       // Handle different types of errors
       let errorMessage = 'Execution failed';

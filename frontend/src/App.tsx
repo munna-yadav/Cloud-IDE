@@ -36,7 +36,7 @@ function App() {
           <AuthProvider>
             <ProjectProvider>
               <FileProvider>
-                <Toaster position="top-right" />
+                <Toaster position="top-right" duration={3000} />
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<Landing />} />
