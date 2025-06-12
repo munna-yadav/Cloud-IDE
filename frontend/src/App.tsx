@@ -15,6 +15,7 @@ import ProjectDetails from './pages/ProjectDetails';
 import CreateProject from './pages/CreateProject';
 import NotFound from './pages/NotFound';
 import VerifyEmail from './pages/VerifyEmail';
+import ResetPassword from './pages/ResetPassword';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -43,6 +44,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   
                   {/* Protected routes */}
                   <Route

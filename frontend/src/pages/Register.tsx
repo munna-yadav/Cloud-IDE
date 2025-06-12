@@ -34,10 +34,10 @@ export default function Register() {
               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
                 <Code2 className="h-6 w-6 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold">Check your email</h1>
+              <h1 className="text-2xl font-bold">Please verify your email</h1>
               <p className="text-muted-foreground">
                 We've sent a verification link to your email address.
-                Please check your inbox and click the link to verify your account.
+                Please check your inbox (and spam folder) and click the link to activate your account.
               </p>
               <p className="text-sm text-muted-foreground">
                 You will be redirected to the login page in a few seconds...
