@@ -20,9 +20,8 @@ import {
 } from '../components/ui/dropdown-menu';
 import { useState } from 'react';
 
-const { user } = useAuth();
-
 export default function Dashboard() {
+  const { user} = useAuth();
   const { projects, loading: projectsLoading, deleteProject } = useProjects();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -27,7 +27,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login">
-              <Button variant="ghost" className="hover:bg-blue-900/20">
+              <Button variant="outline" className="hover:bg-blue-900/20">
                 Sign In
               </Button>
             </Link>
