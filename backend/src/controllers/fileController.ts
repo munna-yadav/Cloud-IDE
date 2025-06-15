@@ -39,10 +39,10 @@ export const fileController = {
         return res.status(404).json({ error: 'File not found' });
       }
 
-      res.json(file);
+       return res.status(200).json(file);
     } catch (error) {
       console.error('Get file error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -58,10 +58,10 @@ export const fileController = {
         },
       });
 
-      res.json(file);
+      return res.status(200).json(file);
     } catch (error) {
       console.error('Update file error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: 'Internal server error' });
     }
   },
 
@@ -88,7 +88,7 @@ export const fileController = {
         orderBy: { path: 'asc' },
       });
 
-      return res.json(files);
+      return res.status(200).json(files);
     } catch (error) {
       console.error('Get project files error:', error);
       return res.status(500).json({ error: 'Internal server error' });
