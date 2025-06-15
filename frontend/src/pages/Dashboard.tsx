@@ -21,7 +21,6 @@ import {
 import { useState } from 'react';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
   const { projects, loading: projectsLoading, deleteProject } = useProjects();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
