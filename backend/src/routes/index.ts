@@ -19,6 +19,7 @@ router.post('/users/reset-password/:token', validate(userValidation.resetPasswor
 router.get('/users/find-by-email', auth, userController.findByEmail);
 router.get('/users/:id', auth, userController.getProfile);
 router.get('/users/me', auth, userController.getMe);
+router.delete('/users/delete',auth,userController.deleteAccount)
 
 // Project routes
 router.post('/projects', auth, validate(projectValidation.create), projectController.createProject);

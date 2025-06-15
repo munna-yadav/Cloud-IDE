@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { emailService } from '../services/emailService';
 import { tokenService } from '../services/tokenService';
+import { AppError } from '../middleware/errorHandler';
 
 const prisma = new PrismaClient();
 
@@ -190,7 +191,7 @@ export const userController = {
     }
   },
 
-  async logout(req: Request, res: Response) {
+  async logout(_req: Request, res: Response) {
     try {
       tokenService.clearTokenCookie(res);
       return res.json({ message: 'Logged out successfully' });
@@ -256,6 +257,59 @@ export const userController = {
       return res.json(user);
     } catch (error) {
       console.error('Find by email error:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  async deleteAccount(req: Request, res: Response) {
+    try {
+      // Get user from auth middleware
+      const user = req.user;
+      if (!user) {
+        throw new AppError('Unauthorized', 401);
+      }
+
+      // Start a transaction to ensure all deletions succeed or none do
+      await prisma.$transaction(async (tx) => {
+        // 1. First, delete all files in all projects owned by the user
+        await tx.file.deleteMany({
+          where: {
+            project: {
+              ownerId: user.userId
+            }
+          }
+        });
+
+        
+
+        // 3. Delete all projects owned by the user
+        await tx.project.deleteMany({
+          where: {
+            ownerId: user.userId
+          }
+        });
+
+        // 4. Finally, delete the user
+        await tx.user.delete({
+          where: {
+            id: user.userId
+          }
+        });
+      });
+
+      // Clear authentication token
+      tokenService.clearTokenCookie(res);
+
+      return res.json({ 
+        success: true, 
+        message: 'Account and all associated data deleted successfully' 
+      });
+
+    } catch (error) {
+      console.error('Delete account error:', error);
+      if (error instanceof AppError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
       return res.status(500).json({ error: 'Internal server error' });
     }
   },
