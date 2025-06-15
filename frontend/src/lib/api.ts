@@ -29,6 +29,7 @@ export const auth = {
   resetPassword: (token: string, password: string) =>
     api.post(`/users/reset-password/${token}`, { password }),
   getProfile: () => api.get('/users/me'),
+  deleteAccount: () => api.delete('/users/delete'),
 };
 
 export const users = {

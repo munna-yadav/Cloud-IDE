@@ -16,6 +16,7 @@ import CreateProject from './pages/CreateProject';
 import NotFound from './pages/NotFound';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
+import Profile from './pages/Profile';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -52,6 +53,14 @@ function App() {
                     element={
                       <PrivateRoute>
                         <Dashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <PrivateRoute>
+                        <Profile />
                       </PrivateRoute>
                     }
                   />

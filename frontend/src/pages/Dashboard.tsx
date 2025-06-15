@@ -2,7 +2,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useProjects } from '../contexts/ProjectContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
-import { Code2, Plus, FolderGit2, Clock, Users, Share2, Trash2, MoreVertical } from 'lucide-react';
+import { Code2, Plus, FolderGit2, Clock, Users, Share2, Trash2, MoreVertical, User } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { 
   Dialog, 
@@ -158,8 +158,9 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Cloud IDE</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={logout}>
-              Sign out
+            <Button variant="ghost" onClick={() => navigate('/profile')}>
+              <User className="mr-2 h-4 w-4" />
+              Profile
             </Button>
           </div>
         </div>
@@ -224,7 +225,7 @@ export default function Dashboard() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Project</DialogTitle>
+            <DialogTitle className='text-red-500'>Delete Project</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete "{projectToDelete?.name}"? This action cannot be undone.
               All files and data associated with this project will be permanently removed.
@@ -232,6 +233,7 @@ export default function Dashboard() {
           </DialogHeader>
           <DialogFooter>
             <Button
+              className='bg-gray-500 font-white hover:bg-gray-600'
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
               disabled={isDeleting}
