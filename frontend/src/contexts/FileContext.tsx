@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useCallback } from 'react';
+import { createContext, useContext, ReactNode, useState, useCallback, Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
 import { files } from '../lib/api';
 
@@ -16,8 +16,8 @@ interface FileContextType {
   files: File[];
   currentFile: File | null;
   loading: boolean;
-  setFiles: (files: File[]) => void;
-  setCurrentFile: (file: File | null) => void;
+  setFiles: Dispatch<SetStateAction<File[]>>;
+  setCurrentFile: Dispatch<SetStateAction<File | null>>;
   createFile: (projectId: string, data: { name: string; content: string; language: string; path: string }) => Promise<File>;
   updateFile: (id: string, content: string) => Promise<File>;
   deleteFile: (id: string) => Promise<void>;

@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useProjects } from '../contexts/ProjectContext';
 import { useFiles } from '../contexts/FileContext';
 import { useAuth } from '../contexts/AuthContext';
 import { projects as projectsApi } from '../lib/api';
-import { CodeEditor } from '../components/CodeEditor';
+import { CodeEditor, type CursorPosition } from '../components/CodeEditor';
 import { CodeRunner } from '../components/CodeRunner';
 import { ResizablePanel } from '../components/ResizablePanel';
 import { FileExplorer } from '../components/FileExplorer';
@@ -12,6 +12,7 @@ import { FileTabs } from '../components/FileTabs';
 import { ProjectMembers } from '../components/ProjectMembers';
 import { Button } from '../components/ui/button';
 import { Settings, Share, ChevronLeft, ChevronRight } from 'lucide-react';
+import { socketClient, type CursorUpdatePayload } from '../lib/socket';
 
 import type { File } from '../contexts/FileContext';
 
@@ -27,15 +28,86 @@ interface ProjectWithDetails {
   files?: File[];
 }
 
+interface RemoteCursorState {
+  cursor: {
+    lineNumber: number;
+    column: number;
+  };
+  updatedAt: number;
+}
+
 export default function ProjectDetails() {
   const { projectId } = useParams<{ projectId: string }>();
   const { user } = useAuth();
-  const { files, currentFile, setCurrentFile, createFile, updateFile, deleteFile, fetchFiles } = useFiles();
+  const { files, currentFile, setCurrentFile, setFiles, createFile, updateFile, deleteFile, fetchFiles } = useFiles();
   const { projects, addMember, removeMember } = useProjects();
   const [project, setProject] = useState<ProjectWithDetails | null>(null);
   const [fetching, setFetching] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openFiles, setOpenFiles] = useState<File[]>([]);
+  const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursorState>>({});
+
+  const saveTimeoutRef = useRef<number | null>(null);
+  const latestFileIdRef = useRef<string | null>(null);
+  const latestContentRef = useRef('');
+  const lastPersistedContentRef = useRef('');
+  const cursorThrottleRef = useRef<number | null>(null);
+  const pendingCursorRef = useRef<CursorPosition | null>(null);
+
+  const persistLatestContent = useCallback(async () => {
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    if (!latestFileIdRef.current) {
+      return;
+    }
+
+    if (latestContentRef.current === lastPersistedContentRef.current) {
+      return;
+    }
+
+    try {
+      await updateFile(latestFileIdRef.current, latestContentRef.current);
+      lastPersistedContentRef.current = latestContentRef.current;
+    } catch (error) {
+      console.error('Failed to persist file:', error);
+    }
+  }, [updateFile]);
+
+  useEffect(() => {
+    latestFileIdRef.current = currentFile?.id ?? null;
+    latestContentRef.current = currentFile?.content ?? '';
+    lastPersistedContentRef.current = currentFile?.content ?? '';
+  }, [currentFile]);
+
+  useEffect(() => {
+    return () => {
+      void persistLatestContent();
+    };
+  }, [persistLatestContent]);
+
+  useEffect(() => {
+    setRemoteCursors({});
+  }, [projectId]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setRemoteCursors(prev => {
+        const now = Date.now();
+        const entries = Object.entries(prev).filter(([, value]) => now - value.updatedAt < 15000);
+        if (entries.length === Object.keys(prev).length) {
+          return prev;
+        }
+        return Object.fromEntries(entries);
+      });
+    }, 5000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, []);
 
   // Load open files from localStorage
   useEffect(() => {
@@ -97,6 +169,47 @@ export default function ProjectDetails() {
     ]).catch(console.error);
   }, [projectId, fetchProjectDetails, fetchFiles]);
 
+  useEffect(() => {
+    if (!projectId) return;
+
+    socketClient.joinProject(projectId);
+
+    const unsubscribeCode = socketClient.onCodeUpdate(({ fileId, content }) => {
+      setFiles(prev =>
+        prev.map(file => (file.id === fileId ? { ...file, content } : file))
+      );
+
+      setCurrentFile(prev =>
+        prev && prev.id === fileId ? { ...prev, content } : prev
+      );
+
+      if (latestFileIdRef.current === fileId) {
+        latestContentRef.current = content;
+        lastPersistedContentRef.current = content;
+      }
+    });
+
+    const unsubscribeCursor = socketClient.onCursorUpdate((payload: CursorUpdatePayload) => {
+      if (payload.userId === user?.id) {
+        return;
+      }
+
+      setRemoteCursors(prev => ({
+        ...prev,
+        [payload.userId]: {
+          cursor: payload.cursor,
+          updatedAt: Date.now(),
+        },
+      }));
+    });
+
+    return () => {
+      unsubscribeCode();
+      unsubscribeCursor();
+      socketClient.leaveProject(projectId);
+    };
+  }, [projectId, setFiles, setCurrentFile, user?.id]);
+
   const handleFileSelect = (file: File) => {
     // Always set the current file first
     setCurrentFile(file);
@@ -118,14 +231,81 @@ export default function ProjectDetails() {
     }
   };
 
-  const handleFileContentChange = async (content: string) => {
-    if (!currentFile) return;
-    try {
-      await updateFile(currentFile.id, content);
-    } catch (error) {
-      console.error('Failed to update file:', error);
+  const handleFileContentChange = useCallback((content: string) => {
+    if (!currentFile || !projectId) return;
+
+    latestFileIdRef.current = currentFile.id;
+    latestContentRef.current = content;
+
+    setFiles(prev =>
+      prev.map(file => (file.id === currentFile.id ? { ...file, content } : file))
+    );
+
+    setCurrentFile(prev =>
+      prev && prev.id === currentFile.id ? { ...prev, content } : prev
+    );
+
+    socketClient.emitCodeChange({
+      projectId,
+      fileId: currentFile.id,
+      content,
+    });
+
+    if (latestContentRef.current === lastPersistedContentRef.current) {
+      if (saveTimeoutRef.current) {
+        window.clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+      return;
     }
-  };
+
+    if (saveTimeoutRef.current) {
+      window.clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = window.setTimeout(() => {
+      void persistLatestContent();
+    }, 1500);
+  }, [currentFile, projectId, setFiles, setCurrentFile, persistLatestContent]);
+
+  const handleCursorChange = useCallback((cursor: CursorPosition) => {
+    if (!projectId || !user?.id) {
+      return;
+    }
+
+    pendingCursorRef.current = cursor;
+
+    if (cursorThrottleRef.current) {
+      return;
+    }
+
+    cursorThrottleRef.current = window.setTimeout(() => {
+      cursorThrottleRef.current = null;
+      if (!pendingCursorRef.current) {
+        return;
+      }
+
+      socketClient.emitCursorMove({
+        projectId,
+        userId: user.id,
+        cursor: pendingCursorRef.current,
+      });
+
+      pendingCursorRef.current = null;
+    }, 120);
+  }, [projectId, user?.id]);
+
+  const handleEditorBlur = useCallback(() => {
+    void persistLatestContent();
+  }, [persistLatestContent]);
+
+  useEffect(() => {
+    return () => {
+      if (cursorThrottleRef.current) {
+        window.clearTimeout(cursorThrottleRef.current);
+      }
+    };
+  }, []);
 
   const handleCreateFile = async (name: string, language: string, path: string) => {
     if (!projectId) return;
@@ -193,6 +373,19 @@ export default function ProjectDetails() {
     );
   }
 
+  const collaboratorBadges = Object.entries(remoteCursors)
+    .filter(([userId]) => userId !== user.id)
+    .map(([userId]) => {
+      const member =
+        project.members.find((m) => m.id === userId) ||
+        (project.owner.id === userId ? project.owner : null);
+
+      return {
+        userId,
+        name: member?.name || 'Collaborator',
+      };
+    });
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-[#0d1117] to-[#161b22] text-white">
       {/* Sidebar */}
@@ -256,6 +449,18 @@ export default function ProjectDetails() {
             {currentFile ? currentFile.path : 'No file selected'}
           </span>
           <div className="flex items-center gap-2">
+            {collaboratorBadges.length > 0 && (
+              <div className="flex items-center gap-1 mr-2">
+                {collaboratorBadges.map(({ userId, name }) => (
+                  <span
+                    key={userId}
+                    className="rounded-full bg-[#2d333b] px-2 py-0.5 text-xs text-gray-300"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            )}
             <ProjectMembers
               members={project.members}
               owner={project.owner}
@@ -291,6 +496,8 @@ export default function ProjectDetails() {
                       value={currentFile.content}
                       language={currentFile.language}
                       onChange={handleFileContentChange}
+                    onCursorChange={handleCursorChange}
+                    onBlur={handleEditorBlur}
                     />
                   </div>
 
@@ -308,6 +515,8 @@ export default function ProjectDetails() {
                   value={currentFile.content}
                   language={currentFile.language}
                   onChange={handleFileContentChange}
+                  onCursorChange={handleCursorChange}
+                  onBlur={handleEditorBlur}
                 />
               )}
             </div>
